@@ -6,14 +6,14 @@ The Go Formatter library implements **replacement fields** surrounded by curly b
 
 ## Features
 
-* Format string by providing arguments without using placeholders or format verbs `%`
-* Format string using automatic placeholder `{p}`
-* Format string using positional placeholders `{pN}`
-* Format string using named placeholders `{name}`
-* Format string using object placeholders `{.Field}`
-* Use custom placeholder string. Default is `p`
-* Use custom replacement delimiters. Default are `{` and `}`
-* Use custom replacement functions
+*   Format string by providing arguments without using placeholders or format verbs `%`
+*   Format string using automatic placeholder `{p}`
+*   Format string using positional placeholders `{pN}`
+*   Format string using named placeholders `{name}`
+*   Format string using object placeholders `{.Field}`
+*   Use custom placeholder string. Default is `p`
+*   Use custom replacement delimiters. Default are `{` and `}`
+*   Use custom replacement functions
 
 ## Usage
 
