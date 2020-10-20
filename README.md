@@ -101,13 +101,13 @@ Named placeholders dir/file:3:func1():
 
 ```go
 object := struct {
-  Line     int
-  Function string
-  File     string
+	Line     int
+	Function string
+	File     string
 }{
-  Line:     4,
-  Function: "func1",
-  File:     "dir/file",
+	Line:     4,
+	Function: "func1",
+	File:     "dir/file",
 }
 
 formatted, err := formatter.Format("Object placeholders {.File}:{.Line}:{.Function}():", object)
@@ -125,13 +125,13 @@ Object placeholders dir/file:4:func1():
 
 ```go
 objectPointer := &struct {
-  X int
-  Y int
-  Z int
+	X int
+	Y int
+	Z int
 }{
-  X: 2,
-  Z: 6,
-  Y: 3,
+	X: 2,
+	Z: 6,
+	Y: 3,
 }
 
 formatted, err := formatter.Format("Mixed placeholders {.X}.{p}.{.Y}.{.Z} {p1} {p0}", objectPointer, "b", "c", nil)
@@ -165,18 +165,18 @@ Writer bar 3 foo
 
 ```go
 functions := formatter.Functions{
-  "str": func() string {
-    return "text"
-  },
-  "number": func() int {
-    return 3
-  },
-  "boolean": func() bool {
-    return true
-  },
-  "floating": func() float64 {
-    return 4.5
-  },
+	"str": func() string {
+		return "text"
+	},
+	"number": func() int {
+		return 3
+	},
+	"boolean": func() bool {
+		return true
+	},
+	"floating": func() float64 {
+		return 4.5
+	},
 }
 
 formatted, err := formatter.New().SetFunctions(functions).Format("Custom functions {str} {p} {number} {boolean} {floating}", 5)
