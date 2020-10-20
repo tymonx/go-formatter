@@ -156,6 +156,54 @@ func ExampleFormatWriter() {
 	// Output: Writer bar 3 foo
 }
 
+func ExampleFormat_setFunctions() {
+	functions := formatter.Functions{
+		"str": func() string {
+			return "text"
+		},
+		"number": func() int {
+			return 3
+		},
+		"boolean": func() bool {
+			return true
+		},
+		"floating": func() float64 {
+			return 4.5
+		},
+	}
+
+	formatted, err := formatter.New().SetFunctions(functions).Format("Custom functions {str} {p} {number} {boolean} {floating}", 5)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(formatted)
+	// Output: Custom functions text 5 3 true 4.5
+}
+
+func ExampleFormat_setPlaceholder() {
+	formatted, err := formatter.New().SetPlaceholder("arg").Format("Custom placeholder {arg1} {arg0}", "2", 3)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(formatted)
+	// Output: Custom placeholder 3 2
+}
+
+func ExampleFormat_setDelimiters() {
+	formatted, err := formatter.New().SetDelimiters("<", ">").Format("Custom delimiters <p1> <p0>", "4", 3)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(formatted)
+	// Output: Custom delimiters 3 4
+}
+
 func TestFormatterNew(test *testing.T) {
 	assert.NotNil(test, formatter.New())
 }

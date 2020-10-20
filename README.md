@@ -160,3 +160,60 @@ Output:
 ```plaintext
 Writer bar 3 foo
 ```
+
+### Functions
+
+```go
+functions := formatter.Functions{
+  "str": func() string {
+    return "text"
+  },
+  "number": func() int {
+    return 3
+  },
+  "boolean": func() bool {
+    return true
+  },
+  "floating": func() float64 {
+    return 4.5
+  },
+}
+
+formatted, err := formatter.New().SetFunctions(functions).Format("Custom functions {str} {p} {number} {boolean} {floating}", 5)
+
+fmt.Println(formatted)
+```
+
+Output:
+
+```plaintext
+Custom functions text 5 3 true 4.5
+```
+
+### Custom placeholder
+
+```go
+formatted, err := formatter.New().SetPlaceholder("arg").Format("Custom placeholder {arg1} {arg0}", "2", 3)
+
+fmt.Println(formatted)
+```
+
+Output:
+
+```plaintext
+Custom placeholder 3 2
+```
+
+### Custom delimiters
+
+```go
+formatted, err := formatter.New().SetDelimiters("<", ">").Format("Custom delimiters <p1> <p0>", "4", 3)
+
+fmt.Println(formatted)
+```
+
+Output:
+
+```plaintext
+Custom delimiters 3 4
+```
