@@ -10,10 +10,11 @@ The Go Formatter library implements **replacement fields** surrounded by curly b
 *   Format string using automatic placeholder `{p}`
 *   Format string using positional placeholders `{pN}`
 *   Format string using named placeholders `{name}`
-*   Format string using object placeholders `{.Field}`
+*   Format string using object placeholders `{.Field}`, `{p.Field}` and `{pN.Field}` where `Field` is an exported `struct` field or method
 *   Use custom placeholder string. Default is `p`
 *   Use custom replacement delimiters. Default are `{` and `}`
-*   Use custom replacement functions
+*   Use custom replacement functions with transformation using pipeline `|`
+*   Under the hood it uses the standard [text/template](https://golang.org/pkg/text/template/) package
 
 ## Usage
 
@@ -99,6 +100,8 @@ Named placeholders dir/file:3:func1():
 
 ### Object placeholders
 
+It handles exported `struct` fields and methods. First letter must be capitalized.
+
 ```go
 object := struct {
 	Line     int
@@ -119,6 +122,62 @@ Output:
 
 ```plaintext
 Object placeholders dir/file:4:func1():
+```
+
+### Object with automatic placeholder
+
+It handles exported `struct` fields and methods. First letter must be capitalized.
+
+```go
+object1 := struct {
+	Message string
+}{
+	Message: "object1",
+}
+
+object2 := struct {
+	X int
+}{
+	X: 2,
+}
+
+formatted, err := formatter.Format("Object with automatic placeholder {p.Message} {p.X}", object1, object2)
+
+fmt.Println(formatted)
+```
+
+Output:
+
+```plaintext
+Object with automatic placeholders object1 2
+```
+
+### Object with positional placeholders
+
+It handles exported `struct` fields and methods. First letter must be capitalized.
+
+```go
+object1 := struct {
+	Message string
+}{
+	Message: "object1",
+}
+
+object2 := struct {
+	X int
+}{
+	X: 2,
+}
+
+formatted, err := formatter.Format("Object with positional placeholder {p1.X} {p0.Message}", object1, object2)
+
+fmt.Println(formatted)
+```
+
+Output:
+
+```plaintext
+Object with positional placeholders 2 object1
 ```
 
 ### Mixed placeholders
@@ -177,9 +236,12 @@ functions := formatter.Functions{
 	"floating": func() float64 {
 		return 4.5
 	},
+	"transform": func(value int) int {
+		return value + 3
+	}
 }
 
-formatted, err := formatter.New().SetFunctions(functions).Format("Custom functions {str} {p} {number} {boolean} {floating}", 5)
+formatted, err := formatter.New().SetFunctions(functions).Format("Custom functions {str} {p} {number} {boolean} {floating} {number | transform}", 5)
 
 fmt.Println(formatted)
 ```
@@ -187,7 +249,7 @@ fmt.Println(formatted)
 Output:
 
 ```plaintext
-Custom functions text 5 3 true 4.5
+Custom functions text 5 3 true 4.5 6
 ```
 
 ### Custom placeholder

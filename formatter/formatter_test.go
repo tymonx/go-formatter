@@ -103,6 +103,52 @@ func ExampleFormat_objectPlaceholders() {
 	// Output: Object placeholders dir/file:4:func1():
 }
 
+func ExampleFormat_objectAutomaticPlaceholders() {
+	object1 := struct {
+		X int
+	}{
+		X: 1,
+	}
+
+	object2 := struct {
+		Message string
+	}{
+		Message: "msg",
+	}
+
+	formatted, err := formatter.Format("{p.X} {p.Message}", object1, object2)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(formatted)
+	// Output: 1 msg
+}
+
+func ExampleFormat_objectPositionalPlaceholders() {
+	object1 := struct {
+		X int
+	}{
+		X: 1,
+	}
+
+	object2 := struct {
+		Y int
+	}{
+		Y: 2,
+	}
+
+	formatted, err := formatter.Format("{p1.Y} {p0.X}", object1, object2)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(formatted)
+	// Output: 2 1
+}
+
 func ExampleFormat_objectPointerPlaceholders() {
 	objectPointer := &struct {
 		X int
