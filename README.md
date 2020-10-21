@@ -101,6 +101,9 @@ Named placeholders dir/file:3:func1():
 ### Object placeholders
 
 It handles exported `struct` fields and methods. First letter must be capitalized.
+Transformation using pipeline `|` also works with exported `struct` fields and `struct` methods.
+For more information about pipelines please see the [Pipelines](https://golang.org/pkg/text/template/#hdr-Pipelines)
+section from the standard [text/template](https://golang.org/pkg/text/template) package.
 
 ```go
 object := struct {
@@ -127,6 +130,9 @@ Object placeholders dir/file:4:func1():
 ### Object with automatic placeholder
 
 It handles exported `struct` fields and methods. First letter must be capitalized.
+Transformation using pipeline `|` also works with exported `struct` fields and `struct` methods.
+For more information about **pipelines** please see the [Pipelines](https://golang.org/pkg/text/template/#hdr-Pipelines)
+section from the standard [text/template](https://golang.org/pkg/text/template) package.
 
 ```go
 object1 := struct {
@@ -154,7 +160,10 @@ Object with automatic placeholder object1 2
 
 ### Object with positional placeholders
 
-It handles exported `struct` fields and methods. First letter must be capitalized.
+It handles exported `struct` fields and methods. First letter must be capitalized. 
+Transformation using pipeline `|` also works with exported `struct` fields and `struct` methods.
+For more information about **pipelines** please see the [Pipelines](https://golang.org/pkg/text/template/#hdr-Pipelines)
+section from the standard [text/template](https://golang.org/pkg/text/template) package.
 
 ```go
 object1 := struct {
@@ -221,6 +230,10 @@ Writer bar 3 foo
 ```
 
 ### Functions
+
+Transformation using pipeline `|` also works with exported `struct` fields and `struct` methods.
+For more information about **pipelines** please see the [Pipelines](https://golang.org/pkg/text/template/#hdr-Pipelines)
+section from the standard [text/template](https://golang.org/pkg/text/template) package.
 
 ```go
 functions := formatter.Functions{
