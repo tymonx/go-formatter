@@ -238,7 +238,7 @@ functions := formatter.Functions{
 	},
 	"transform": func(value int) int {
 		return value + 3
-	}
+	},
 }
 
 formatted, err := formatter.New().SetFunctions(functions).Format("Custom functions {str} {p} {number} {boolean} {floating} {number | transform}", 5)
