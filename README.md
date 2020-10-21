@@ -292,3 +292,15 @@ Output:
 ```plaintext
 Custom delimiters 3 4
 ```
+
+### Must format
+
+```go
+fmt.Println(formatter.MustFormat("With arguments", 3, nil, false, 4.5, "text", []byte{}, Error("error")))
+```
+
+Output:
+
+```plaintext
+With arguments 3 <nil> false 4.5 text [] error
+```

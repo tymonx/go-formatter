@@ -60,6 +60,12 @@ func Format(message string, arguments ...interface{}) (string, error) {
 	return New().Format(message, arguments...)
 }
 
+// MustFormat is like Format but panics if provided message cannot be formatted.
+// It simplifies safe initialization of global variables holding formatted strings.
+func MustFormat(message string, arguments ...interface{}) string {
+	return New().MustFormat(message, arguments...)
+}
+
 // FormatWriter formats string to writer.
 func FormatWriter(writer io.Writer, message string, arguments ...interface{}) error {
 	return New().FormatWriter(writer, message, arguments...)
@@ -74,6 +80,18 @@ func (f *Formatter) Format(message string, arguments ...interface{}) (string, er
 	}
 
 	return buffer.String(), nil
+}
+
+// MustFormat is like Format but panics if provided message cannot be formatted.
+// It simplifies safe initialization of global variables holding formatted strings.
+func (f *Formatter) MustFormat(message string, arguments ...interface{}) string {
+	formatted, err := f.Format(message, arguments...)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return formatted
 }
 
 // Reset resets formatter to default state.

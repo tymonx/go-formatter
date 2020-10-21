@@ -23,6 +23,11 @@ import (
 	"gitlab.com/tymonx/go-formatter/formatter"
 )
 
+func ExampleMustFormat() {
+	fmt.Println(formatter.MustFormat("With arguments", 3, nil, false, 4.5, "text", []byte{}, Error("error")))
+	// Output: With arguments 3 <nil> false 4.5 text [] error
+}
+
 func ExampleFormat_withoutArguments() {
 	formatted, err := formatter.Format("Without arguments")
 
@@ -404,4 +409,10 @@ func TestFormatterObjectNil(test *testing.T) {
 	assert.Nil(test, object)
 	assert.NoError(test, err)
 	assert.Equal(test, "Message 3 <nil> object", formatted)
+}
+
+func TestFormatterMustFormatPanics(test *testing.T) {
+	assert.Panics(test, func() {
+		formatter.MustFormat("{invalid}")
+	})
 }
