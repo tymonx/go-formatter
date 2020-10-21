@@ -149,7 +149,7 @@ fmt.Println(formatted)
 Output:
 
 ```plaintext
-Object with automatic placeholders object1 2
+Object with automatic placeholder object1 2
 ```
 
 ### Object with positional placeholders
@@ -169,7 +169,7 @@ object2 := struct {
 	X: 2,
 }
 
-formatted, err := formatter.Format("Object with positional placeholder {p1.X} {p0.Message}", object1, object2)
+formatted, err := formatter.Format("Object with positional placeholders {p1.X} {p0.Message}", object1, object2)
 
 fmt.Println(formatted)
 ```
