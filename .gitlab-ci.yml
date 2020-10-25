@@ -38,6 +38,8 @@ lint:
 
 test:
     extends: .go-test
+    after_script:
+        - bash <(wget -qO- https://coverage.codacy.com/get.sh) report
 
 pages:
     extends: .go-doc
