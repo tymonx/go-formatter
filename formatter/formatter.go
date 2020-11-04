@@ -256,7 +256,8 @@ func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...
 		}
 	}
 
-	t := template.New("").Delims(f.leftDelimiter, f.rightDelimiter).Funcs(placeholders).Funcs(template.FuncMap(f.functions))
+	t := template.New("").Delims(f.leftDelimiter, f.rightDelimiter).
+		Funcs(gFunctions).Funcs(placeholders).Funcs(template.FuncMap(f.functions))
 
 	if _, err := t.Parse(message); err != nil {
 		return err

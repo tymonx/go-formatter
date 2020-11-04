@@ -304,3 +304,53 @@ Output:
 ```plaintext
 With arguments 3 <nil> false 4.5 text [] error
 ```
+
+### Colors
+
+Standard:
+
+```go
+formatted, err := formatter.Format("With colors {Red}red{Normal} {Green}green{Normal} {Blue}blue{Normal}")
+
+fmt.Println(formatted)
+```
+
+Bright:
+
+```go
+formatted, err := formatter.Format("With bright colors {Magenta | Bright}magenta{Normal}")
+
+fmt.Println(formatted)
+```
+
+Background:
+
+```go
+formatted, err := formatter.Format("With background colors {Yellow | Background}yellow{Normal}")
+
+fmt.Println(formatted)
+```
+
+Background + bright:
+
+```go
+formatted, err := formatter.Format("With background bright colors {Cyan | Bright | Background}cyan{Normal}")
+
+fmt.Println(formatted)
+```
+
+RGB:
+
+```go
+formatted, err := formatter.Format("With RGB {RGB 255 165 0}funky{Normal}")
+
+fmt.Println(formatted)
+```
+
+Background RGB:
+
+```go
+formatted, err := formatter.Format("With background RGB {RGB 255 165 0 | Background}funky{Normal}")
+
+fmt.Println(formatted)
+```
