@@ -14,6 +14,7 @@ The Go Formatter library implements **replacement fields** surrounded by curly b
 *   Use custom placeholder string. Default is `p`
 *   Use custom replacement delimiters. Default are `{` and `}`
 *   Use custom replacement functions with transformation using pipeline `|`
+*   Many different handy built-in functions like for example getting local IP address `{ip}`
 *   Under the hood it uses the standard [text/template](https://golang.org/pkg/text/template/) package
 
 ## Usage
@@ -310,7 +311,7 @@ With arguments 3 <nil> false 4.5 text [] error
 Standard:
 
 ```go
-formatted, err := formatter.Format("With colors {Red}red{Normal} {Green}green{Normal} {Blue}blue{Normal}")
+formatted, err := formatter.Format("With colors {red}red{normal} {green}green{normal} {blue}blue{normal}")
 
 fmt.Println(formatted)
 ```
@@ -318,7 +319,7 @@ fmt.Println(formatted)
 Bright:
 
 ```go
-formatted, err := formatter.Format("With bright colors {Magenta | Bright}magenta{Normal}")
+formatted, err := formatter.Format("With bright colors {magenta | bright}magenta{normal}")
 
 fmt.Println(formatted)
 ```
@@ -326,7 +327,7 @@ fmt.Println(formatted)
 Background:
 
 ```go
-formatted, err := formatter.Format("With background colors {Yellow | Background}yellow{Normal}")
+formatted, err := formatter.Format("With background colors {yellow | background}yellow{normal}")
 
 fmt.Println(formatted)
 ```
@@ -334,7 +335,7 @@ fmt.Println(formatted)
 Background + bright:
 
 ```go
-formatted, err := formatter.Format("With background bright colors {Cyan | Bright | Background}cyan{Normal}")
+formatted, err := formatter.Format("With background bright colors {cyan | bright | background}cyan{normal}")
 
 fmt.Println(formatted)
 ```
@@ -342,7 +343,7 @@ fmt.Println(formatted)
 RGB:
 
 ```go
-formatted, err := formatter.Format("With RGB {RGB 255 165 0}funky{Normal}")
+formatted, err := formatter.Format("With RGB {rgb 255 165 0}funky{normal}")
 
 fmt.Println(formatted)
 ```
@@ -350,7 +351,21 @@ fmt.Println(formatted)
 Background RGB:
 
 ```go
-formatted, err := formatter.Format("With background RGB {RGB 255 165 0 | Background}funky{Normal}")
+formatted, err := formatter.Format("With background RGB {rgb 255 165 0 | background}funky{normal}")
 
 fmt.Println(formatted)
 ```
+
+### Built-in functions
+
+For more details please the `formatter` package documentation.
+
+Run example:
+
+```plaintext
+go run ./examples/functions/
+```
+
+Output:
+
+![Example](assets/images/example.png "Example")

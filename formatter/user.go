@@ -12,11 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-module gitlab.com/tymonx/go-formatter
+package formatter
 
-go 1.14
-
-require (
-	github.com/golang/mock v1.4.4
-	github.com/stretchr/testify v1.6.1
+import (
+	"os/user"
 )
+
+// Current is used only in testing and mocking.
+var Current = user.Current // nolint: gochecknoglobals
+
+func getUser() string {
+	if u, err := Current(); err == nil {
+		return u.Username
+	}
+
+	return ""
+}

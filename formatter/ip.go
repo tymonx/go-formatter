@@ -12,11 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-module gitlab.com/tymonx/go-formatter
+package formatter
 
-go 1.14
-
-require (
-	github.com/golang/mock v1.4.4
-	github.com/stretchr/testify v1.6.1
+import (
+	"log"
+	"net"
 )
+
+// Dial is used only in testing and mocking.
+var Dial = net.Dial // nolint: gochecknoglobals
+
+func getIPAddress() string {
+	connection, err := Dial("udp", "8.8.8.8:80")
+
+	if connection == nil {
+		return "127.0.0.1"
+	}
+
+	defer func() {
+		if err = connection.Close(); err != nil {
+			log.Print("formatter error:", err)
+		}
+	}()
+
+	return connection.LocalAddr().(*net.UDPAddr).IP.String()
+}

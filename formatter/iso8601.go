@@ -12,17 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cerror
+package formatter
 
-// Error defines error type.
-type Error string
+import (
+	"time"
+)
 
-// New creates a new error.
-func New(message string) Error {
-	return Error(message)
-}
-
-// Error returns error string representation.
-func (e Error) Error() string {
-	return string(e)
+func setISO8601(t time.Time) string {
+	return t.Format(time.RFC3339)
 }

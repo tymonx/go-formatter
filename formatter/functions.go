@@ -15,62 +15,64 @@
 package formatter
 
 import (
-	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
-
-	"gitlab.com/tymonx/go-formatter/cerror"
+	"time"
 )
 
 var gFunctions = template.FuncMap{ // nolint: gochecknoglobals
-	"Reset":     newEscapeSequence(0),
-	"Normal":    newEscapeSequence(0),
-	"Default":   newEscapeSequence(0),
-	"Bold":      newEscapeSequence(1),
-	"Faint":     newEscapeSequence(2),  // nolint: gomnd
-	"Italic":    newEscapeSequence(3),  // nolint: gomnd
-	"Underline": newEscapeSequence(4),  // nolint: gomnd
-	"Blink":     newEscapeSequence(5),  // nolint: gomnd
-	"Black":     newEscapeSequence(30), // nolint: gomnd
-	"Red":       newEscapeSequence(31), // nolint: gomnd
-	"Green":     newEscapeSequence(32), // nolint: gomnd
-	"Yellow":    newEscapeSequence(33), // nolint: gomnd
-	"Blue":      newEscapeSequence(34), // nolint: gomnd
-	"Magenta":   newEscapeSequence(35), // nolint: gomnd
-	"Cyan":      newEscapeSequence(36), // nolint: gomnd
-	"White":     newEscapeSequence(37), // nolint: gomnd
-	"Gray":      newEscapeSequence(90), // nolint: gomnd
-	"RGB": func(red, green, blue int) string {
-		return fmt.Sprintf("\033[38;2;%d;%d;%dm", scaleColor(red), scaleColor(green), scaleColor(blue))
-	},
-	"Bright": func(in string) (out string, err error) {
-		var code int
-
-		if code, err = getEscapeSequenceCode(in); err != nil {
-			return "", err
-		}
-
-		if isColorRange(code, 0) || isColorRange(code, backgroundOffset) {
-			return newEscapeSequence(code + brightOffset)(), nil
-		}
-
-		return "", cerror.New("Bright can be used only with colors")
-	},
-	"Background": func(in string) (out string, err error) {
-		var code int
-
-		if code, err = getEscapeSequenceCode(in); err != nil {
-			return "", err
-		}
-
-		if isColorRange(code, 0) || isColorRange(code, brightOffset) {
-			return newEscapeSequence(code + backgroundOffset)(), nil
-		}
-
-		if code == foreground {
-			return "\033[48" + strings.TrimPrefix(in, "\033[38"), nil
-		}
-
-		return "", cerror.New("Background can be used only with colors")
-	},
+	"reset":      setNormal,
+	"normal":     setNormal,
+	"default":    setNormal,
+	"bold":       setBold,
+	"faint":      setFaint,
+	"italic":     setItalic,
+	"underline":  setUnderline,
+	"overline":   setOverline,
+	"blink":      setBlink,
+	"invert":     setInvert,
+	"hide":       setHide,
+	"strike":     setStrike,
+	"off":        setOff,
+	"bell":       setBell,
+	"black":      setBlack,
+	"red":        setRed,
+	"green":      setGreen,
+	"yellow":     setYellow,
+	"blue":       setBlue,
+	"magenta":    setMagenta,
+	"cyan":       setCyan,
+	"white":      setWhite,
+	"gray":       setGray,
+	"rgb":        setRGB,
+	"bright":     setBright,
+	"background": setBackground,
+	"foreground": setForeground,
+	"color":      setColor,
+	"ip":         getIPAddress,
+	"user":       getUser,
+	"executable": os.Executable,
+	"cwd":        os.Getwd,
+	"hostname":   os.Hostname,
+	"env":        os.Getenv,
+	"expand":     os.ExpandEnv,
+	"uid":        os.Getuid,
+	"gid":        os.Getgid,
+	"euid":       os.Geteuid,
+	"egid":       os.Getegid,
+	"pid":        os.Getpid,
+	"ppid":       os.Getppid,
+	"upper":      strings.ToUpper,
+	"lower":      strings.ToLower,
+	"capitalize": strings.Title,
+	"now":        time.Now,
+	"rfc3339":    setISO8601,
+	"iso8601":    setISO8601,
+	"absolute":   filepath.Abs,
+	"base":       filepath.Base,
+	"clean":      filepath.Clean,
+	"directory":  filepath.Dir,
+	"extension":  filepath.Ext,
 }

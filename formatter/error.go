@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-module gitlab.com/tymonx/go-formatter
+package formatter
 
-go 1.14
+type fError string
 
-require (
-	github.com/golang/mock v1.4.4
-	github.com/stretchr/testify v1.6.1
-)
+func (f fError) Error() string {
+	return string(f)
+}

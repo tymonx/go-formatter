@@ -22,6 +22,26 @@ func (e Error) Error() string {
 	return string(e)
 }
 
+// StructError type.
+type StructError struct {
+	value string
+}
+
+// Error message.
+func (s *StructError) Error() string {
+	return s.value
+}
+
+// StructValueError type.
+type StructValueError struct {
+	value string
+}
+
+// Error message.
+func (s StructValueError) Error() string {
+	return s.value
+}
+
 // WriterError mocks Writer interface and returns an error.
 type WriterError struct {
 	Skip int
