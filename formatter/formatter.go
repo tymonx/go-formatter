@@ -238,6 +238,11 @@ func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...
 	for position, argument := range arguments {
 		placeholder := f.placeholder + strconv.Itoa(position)
 		placeholders[placeholder] = argumentValue(used, position, argument)
+
+		if _, ok := argument.(error); ok {
+			continue
+		}
+
 		valueOf := reflect.ValueOf(argument)
 
 		switch valueOf.Kind() {
@@ -250,7 +255,7 @@ func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...
 		case reflect.Struct:
 			object = argument
 		case reflect.Ptr:
-			if !valueOf.IsNil() && (valueOf.Elem().Kind() == reflect.Struct) {
+			if isObjectPointer(valueOf) {
 				object = argument
 			}
 		}
@@ -282,7 +287,15 @@ func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...
 	return write(writer, message)
 }
 
+func isObjectPointer(value reflect.Value) bool {
+	return !value.IsNil() && (value.Elem().Kind() == reflect.Struct)
+}
+
 func isArgumentUsed(used map[int]bool, position int, argument interface{}) bool {
+	if _, ok := argument.(error); ok {
+		return used[position]
+	}
+
 	valueOf := reflect.ValueOf(argument)
 
 	switch valueOf.Kind() {
@@ -293,7 +306,7 @@ func isArgumentUsed(used map[int]bool, position int, argument interface{}) bool 
 	case reflect.Struct:
 		return true
 	case reflect.Ptr:
-		if !valueOf.IsNil() && (valueOf.Elem().Kind() == reflect.Struct) {
+		if isObjectPointer(valueOf) {
 			return true
 		}
 	}

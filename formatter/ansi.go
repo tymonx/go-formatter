@@ -16,43 +16,306 @@ package formatter
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 const (
-	black                = 30
-	white                = 37
-	brightOffset         = 60
-	backgroundOffset     = 10
-	escapeSequenceFormat = "\033[%dm"
-	colorMinimum         = 0
-	colorMaximum         = 255
-	foreground           = 38
+	redOffset   = 16
+	greenOffset = 8
 )
 
-func newEscapeSequence(code int) func() string {
-	return func() string {
-		return fmt.Sprintf(escapeSequenceFormat, code)
+var gBrightMap = map[string]string{ // nolint: gochecknoglobals
+	"\033[30m":  "\033[90m",
+	"\033[31m":  "\033[91m",
+	"\033[32m":  "\033[92m",
+	"\033[33m":  "\033[93m",
+	"\033[34m":  "\033[94m",
+	"\033[35m":  "\033[95m",
+	"\033[36m":  "\033[96m",
+	"\033[37m":  "\033[97m",
+	"\033[40m":  "\033[100m",
+	"\033[41m":  "\033[101m",
+	"\033[42m":  "\033[102m",
+	"\033[43m":  "\033[103m",
+	"\033[44m":  "\033[104m",
+	"\033[45m":  "\033[105m",
+	"\033[46m":  "\033[106m",
+	"\033[47m":  "\033[107m",
+	"\033[90m":  "\033[90m",
+	"\033[91m":  "\033[91m",
+	"\033[92m":  "\033[92m",
+	"\033[93m":  "\033[93m",
+	"\033[94m":  "\033[94m",
+	"\033[95m":  "\033[95m",
+	"\033[96m":  "\033[96m",
+	"\033[97m":  "\033[97m",
+	"\033[100m": "\033[100m",
+	"\033[101m": "\033[101m",
+	"\033[102m": "\033[102m",
+	"\033[103m": "\033[103m",
+	"\033[104m": "\033[104m",
+	"\033[105m": "\033[105m",
+	"\033[106m": "\033[106m",
+	"\033[107m": "\033[107m",
+}
+
+var gOffMap = map[string]string{ // nolint: gochecknoglobals
+	"\033[1m":  "\033[21m",
+	"\033[2m":  "\033[22m",
+	"\033[3m":  "\033[23m",
+	"\033[4m":  "\033[24m",
+	"\033[5m":  "\033[25m",
+	"\033[7m":  "\033[27m",
+	"\033[8m":  "\033[28m",
+	"\033[9m":  "\033[29m",
+	"\033[21m": "\033[21m",
+	"\033[22m": "\033[22m",
+	"\033[23m": "\033[23m",
+	"\033[24m": "\033[24m",
+	"\033[25m": "\033[25m",
+	"\033[27m": "\033[27m",
+	"\033[28m": "\033[28m",
+	"\033[29m": "\033[29m",
+	"\033[53m": "\033[55m",
+	"\033[55m": "\033[55m",
+}
+
+var gBackgroundMap = map[string]string{ // nolint: gochecknoglobals,dupl
+	"\033[0m":   "\033[49m",
+	"\033[30m":  "\033[40m",
+	"\033[31m":  "\033[41m",
+	"\033[32m":  "\033[42m",
+	"\033[33m":  "\033[43m",
+	"\033[34m":  "\033[44m",
+	"\033[35m":  "\033[45m",
+	"\033[36m":  "\033[46m",
+	"\033[37m":  "\033[47m",
+	"\033[40m":  "\033[40m",
+	"\033[41m":  "\033[41m",
+	"\033[42m":  "\033[42m",
+	"\033[43m":  "\033[43m",
+	"\033[44m":  "\033[44m",
+	"\033[45m":  "\033[45m",
+	"\033[46m":  "\033[46m",
+	"\033[47m":  "\033[47m",
+	"\033[90m":  "\033[100m",
+	"\033[91m":  "\033[101m",
+	"\033[92m":  "\033[102m",
+	"\033[93m":  "\033[103m",
+	"\033[94m":  "\033[104m",
+	"\033[95m":  "\033[105m",
+	"\033[96m":  "\033[106m",
+	"\033[97m":  "\033[107m",
+	"\033[100m": "\033[100m",
+	"\033[101m": "\033[101m",
+	"\033[102m": "\033[102m",
+	"\033[103m": "\033[103m",
+	"\033[104m": "\033[104m",
+	"\033[105m": "\033[105m",
+	"\033[106m": "\033[106m",
+	"\033[107m": "\033[107m",
+}
+
+var gForegroundMap = map[string]string{ // nolint: gochecknoglobals,dupl
+	"\033[0m":   "\033[39m",
+	"\033[30m":  "\033[30m",
+	"\033[31m":  "\033[31m",
+	"\033[32m":  "\033[32m",
+	"\033[33m":  "\033[33m",
+	"\033[34m":  "\033[34m",
+	"\033[35m":  "\033[35m",
+	"\033[36m":  "\033[36m",
+	"\033[37m":  "\033[37m",
+	"\033[40m":  "\033[30m",
+	"\033[41m":  "\033[31m",
+	"\033[42m":  "\033[32m",
+	"\033[43m":  "\033[33m",
+	"\033[44m":  "\033[34m",
+	"\033[45m":  "\033[35m",
+	"\033[46m":  "\033[36m",
+	"\033[47m":  "\033[37m",
+	"\033[90m":  "\033[90m",
+	"\033[91m":  "\033[91m",
+	"\033[92m":  "\033[92m",
+	"\033[93m":  "\033[93m",
+	"\033[94m":  "\033[94m",
+	"\033[95m":  "\033[95m",
+	"\033[96m":  "\033[96m",
+	"\033[97m":  "\033[97m",
+	"\033[100m": "\033[90m",
+	"\033[101m": "\033[91m",
+	"\033[102m": "\033[92m",
+	"\033[103m": "\033[93m",
+	"\033[104m": "\033[94m",
+	"\033[105m": "\033[95m",
+	"\033[106m": "\033[96m",
+	"\033[107m": "\033[97m",
+}
+
+var gColorMap = map[string]string{ // nolint: gochecknoglobals
+	"default": "\033[0m",
+	"normal":  "\033[0m",
+	"reset":   "\033[0m",
+	"black":   "\033[30m",
+	"red":     "\033[31m",
+	"green":   "\033[32m",
+	"yellow":  "\033[33m",
+	"blue":    "\033[34m",
+	"magenta": "\033[35m",
+	"cyan":    "\033[36m",
+	"white":   "\033[37m",
+	"gray":    "\033[90m",
+}
+
+func setNormal() string {
+	return "\033[0m"
+}
+
+func setBold() string {
+	return "\033[1m"
+}
+
+func setFaint() string {
+	return "\033[2m"
+}
+
+func setItalic() string {
+	return "\033[3m"
+}
+
+func setUnderline() string {
+	return "\033[4m"
+}
+
+func setOverline() string {
+	return "\033[53m"
+}
+
+func setBlink() string {
+	return "\033[5m"
+}
+
+func setInvert() string {
+	return "\033[7m"
+}
+
+func setHide() string {
+	return "\033[8m"
+}
+
+func setStrike() string {
+	return "\033[9m"
+}
+
+func setBlack() string {
+	return "\033[30m"
+}
+
+func setRed() string {
+	return "\033[31m"
+}
+
+func setGreen() string {
+	return "\033[32m"
+}
+
+func setYellow() string {
+	return "\033[33m"
+}
+
+func setBlue() string {
+	return "\033[34m"
+}
+
+func setMagenta() string {
+	return "\033[35m"
+}
+
+func setCyan() string {
+	return "\033[36m"
+}
+
+func setWhite() string {
+	return "\033[37m"
+}
+
+func setGray() string {
+	return "\033[90m"
+}
+
+func setBell() string {
+	return "\a"
+}
+
+func setColor(in string) (out string, err error) {
+	var ok bool
+
+	in = strings.TrimSpace(strings.ToLower(in))
+
+	if out, ok = gColorMap[in]; ok {
+		return out, nil
+	}
+
+	if strings.HasPrefix(in, "0x") {
+		var value uint64
+
+		if value, err = strconv.ParseUint(strings.TrimPrefix(in, "0x"), 16, 24); err != nil {
+			return "", err
+		}
+
+		return setRGB(uint8(value>>redOffset), uint8(value>>greenOffset), uint8(value)), nil
+	}
+
+	return "", fError("color is not supported")
+}
+
+func setOff(in string) (string, error) {
+	if out, ok := gOffMap[in]; ok {
+		return out, nil
+	}
+
+	return "", fError("off can be used with that function")
+}
+
+func setRGB(red, green, blue uint8) string {
+	return fmt.Sprintf("\033[38;2;%d;%d;%dm", red, green, blue)
+}
+
+func setBright(in string) (string, error) {
+	if out, ok := gBrightMap[in]; ok {
+		return out, nil
+	}
+
+	return "", fError("bright can be used only with colors")
+}
+
+func setBackground(in string) (string, error) {
+	if out, ok := gBackgroundMap[in]; ok {
+		return out, nil
+	}
+
+	switch {
+	case strings.HasPrefix(in, "\033[38"):
+		return "\033[48" + strings.TrimPrefix(in, "\033[38"), nil
+	case strings.HasPrefix(in, "\033[48"):
+		return in, nil
+	default:
+		return "", fError("background can be used only with colors")
 	}
 }
 
-func getEscapeSequenceCode(escapeSequence string) (code int, err error) {
-	_, err = fmt.Sscanf(escapeSequence, "\033[%d", &code)
-	return code, err
-}
-
-func isColorRange(code, offset int) bool {
-	code -= offset
-	return (code >= black) && (code <= white)
-}
-
-func scaleColor(color int) int {
-	if color < colorMinimum {
-		color = colorMinimum
+func setForeground(in string) (out string, err error) {
+	if out, ok := gForegroundMap[in]; ok {
+		return out, nil
 	}
 
-	if color > colorMaximum {
-		color = colorMaximum
+	switch {
+	case strings.HasPrefix(in, "\033[48"):
+		return "\033[38" + strings.TrimPrefix(in, "\033[48"), nil
+	case strings.HasPrefix(in, "\033[38"):
+		return in, nil
+	default:
+		return "", fError("foreground can be used only with colors")
 	}
-
-	return color
 }

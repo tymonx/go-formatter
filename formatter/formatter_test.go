@@ -17,10 +17,14 @@ package formatter_test
 import (
 	"bytes"
 	"fmt"
+	"net"
+	"os/user"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/tymonx/go-formatter/formatter"
+	"gitlab.com/tymonx/go-formatter/mocks"
 )
 
 func ExampleMustFormat() {
@@ -256,7 +260,7 @@ func ExampleFormat_setDelimiters() {
 }
 
 func ExampleFormat_colors() {
-	formatted, err := formatter.Format("With colors {Red}red{Normal} {Green}green{Normal} {Blue}blue{Normal}")
+	formatted, err := formatter.Format("With colors {red}red{normal} {green}green{normal} {blue}blue{normal}")
 
 	if err != nil {
 		panic(err)
@@ -266,7 +270,7 @@ func ExampleFormat_colors() {
 }
 
 func ExampleFormat_rgb() {
-	formatted, err := formatter.Format("With RGB {RGB 255 165 0}funky{Normal}")
+	formatted, err := formatter.Format("With RGB {rgb 255 165 0}funky{normal}")
 
 	if err != nil {
 		panic(err)
@@ -276,7 +280,7 @@ func ExampleFormat_rgb() {
 }
 
 func ExampleFormat_backgroundRGB() {
-	formatted, err := formatter.Format("With background RGB {RGB 255 165 0 | Background}funky{Normal}")
+	formatted, err := formatter.Format("With background RGB {rgb 255 165 0 | background}funky{normal}")
 
 	if err != nil {
 		panic(err)
@@ -286,7 +290,7 @@ func ExampleFormat_backgroundRGB() {
 }
 
 func ExampleFormat_brightColors() {
-	formatted, err := formatter.Format("With bright colors {Magenta | Bright}magenta{Normal}")
+	formatted, err := formatter.Format("With bright colors {magenta | bright}magenta{normal}")
 
 	if err != nil {
 		panic(err)
@@ -296,7 +300,7 @@ func ExampleFormat_brightColors() {
 }
 
 func ExampleFormat_backgroundColors() {
-	formatted, err := formatter.Format("With background colors {Yellow | Background}yellow{Normal}")
+	formatted, err := formatter.Format("With background colors {yellow | background}yellow{normal}")
 
 	if err != nil {
 		panic(err)
@@ -306,7 +310,7 @@ func ExampleFormat_backgroundColors() {
 }
 
 func ExampleFormat_backgroundBrightColors() {
-	formatted, err := formatter.Format("With background bright colors {Cyan | Bright | Background}cyan{Normal}")
+	formatted, err := formatter.Format("With background bright colors {cyan | bright | background}cyan{normal}")
 
 	if err != nil {
 		panic(err)
@@ -478,78 +482,421 @@ func TestFormatterMustFormatPanics(test *testing.T) {
 }
 
 func TestFormatterColors(test *testing.T) {
-	formatted, err := formatter.Format("{Red}red{Normal} {Green}green{Normal} {Blue}blue{Normal}")
+	formatted, err := formatter.Format("{red}red{normal} {green}green{normal} {blue}blue{normal}")
 
 	assert.NoError(test, err)
 	assert.Equal(test, "\x1b[31mred\x1b[0m \x1b[32mgreen\x1b[0m \x1b[34mblue\x1b[0m", formatted)
 }
 
 func TestFormatterRGB(test *testing.T) {
-	formatted, err := formatter.Format("{RGB 255 165 0}funky{Normal}")
+	formatted, err := formatter.Format("{rgb 255 165 0}funky{normal}")
 
 	assert.NoError(test, err)
 	assert.Equal(test, "\x1b[38;2;255;165;0mfunky\x1b[0m", formatted)
 }
 
-func TestFormatterRGBOverscaled(test *testing.T) {
-	formatted, err := formatter.Format("{RGB 128 340 -13}funky{Normal}")
-
-	assert.NoError(test, err)
-	assert.Equal(test, "\x1b[38;2;128;255;0mfunky\x1b[0m", formatted)
-}
-
-func TestFormatterBackgroundRGB(test *testing.T) {
-	formatted, err := formatter.Format("{RGB 255 165 0 | Background}funky{Normal}")
+func TestFormatterRGBBackground(test *testing.T) {
+	formatted, err := formatter.Format("{rgb 255 165 0 | background}funky{normal}")
 
 	assert.NoError(test, err)
 	assert.Equal(test, "\x1b[48;2;255;165;0mfunky\x1b[0m", formatted)
 }
 
+func TestFormatterRGBBackgroundForeground(test *testing.T) {
+	formatted, err := formatter.Format("{rgb 0 165 7 | background | foreground}funky{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[38;2;0;165;7mfunky\x1b[0m", formatted)
+}
+
+func TestFormatterRGBForeground(test *testing.T) {
+	formatted, err := formatter.Format("{rgb 255 165 0 | foreground}funky{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[38;2;255;165;0mfunky\x1b[0m", formatted)
+}
+
+func TestFormatterRGBBackgroundBackground(test *testing.T) {
+	formatted, err := formatter.Format("{rgb 255 165 3 | background | background}funky{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[48;2;255;165;3mfunky\x1b[0m", formatted)
+}
+
 func TestFormatterBrightColors(test *testing.T) {
-	formatted, err := formatter.Format("{Magenta | Bright}magenta{Normal}")
+	formatted, err := formatter.Format("{magenta | bright}magenta{normal}")
 
 	assert.NoError(test, err)
 	assert.Equal(test, "\x1b[95mmagenta\x1b[0m", formatted)
 }
 
+func TestFormatterBrightBright(test *testing.T) {
+	formatted, err := formatter.Format("{red | bright | bright}red{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[91mred\x1b[0m", formatted)
+}
+
 func TestFormatterBrightInvalid(test *testing.T) {
-	formatted, err := formatter.Format("{print 5 | Bright}magenta{Normal}")
+	formatted, err := formatter.Format("{print 5 | bright}magenta{normal}")
 
 	assert.Error(test, err)
 	assert.Empty(test, formatted)
 }
 
 func TestFormatterBrightError(test *testing.T) {
-	formatted, err := formatter.Format("{Normal | Bright}magenta{Normal}")
+	formatted, err := formatter.Format("{normal | bright}magenta{normal}")
 
 	assert.Error(test, err)
 	assert.Empty(test, formatted)
 }
 
 func TestFormatterBackgroundColors(test *testing.T) {
-	formatted, err := formatter.Format("{Yellow | Background}yellow{Normal}")
+	formatted, err := formatter.Format("{yellow | background}yellow{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[43myellow\x1b[0m", formatted)
+}
+
+func TestFormatterBackgroundForeground(test *testing.T) {
+	formatted, err := formatter.Format("{white | background | foreground}white{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[37mwhite\x1b[0m", formatted)
+}
+
+func TestFormatterBackgroundDefault(test *testing.T) {
+	formatted, err := formatter.Format("{gray | background}gray{default | background}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[100mgray\x1b[49m", formatted)
+}
+
+func TestFormatterBackgroundBackground(test *testing.T) {
+	formatted, err := formatter.Format("{yellow | background | background}yellow{normal}")
 
 	assert.NoError(test, err)
 	assert.Equal(test, "\x1b[43myellow\x1b[0m", formatted)
 }
 
 func TestFormatterBackgroundInvalid(test *testing.T) {
-	formatted, err := formatter.Format("{print 6 | Background}yellow{Normal}")
+	formatted, err := formatter.Format("{print 6 | background}yellow{normal}")
 
 	assert.Error(test, err)
 	assert.Empty(test, formatted)
 }
 
 func TestFormatterBackgroundError(test *testing.T) {
-	formatted, err := formatter.Format("{Reset | Background}yellow{Normal}")
+	formatted, err := formatter.Format("{blink | background}yellow{normal}")
 
 	assert.Error(test, err)
 	assert.Empty(test, formatted)
 }
 
 func TestFormatterBackgroundBrightColors(test *testing.T) {
-	formatted, err := formatter.Format("{Cyan | Bright | Background}cyan{Normal}")
+	formatted, err := formatter.Format("{cyan | bright | background}cyan{normal}")
 
 	assert.NoError(test, err)
 	assert.Equal(test, "\x1b[106mcyan\x1b[0m", formatted)
+}
+
+func TestFormatterForegroundColors(test *testing.T) {
+	formatted, err := formatter.Format("{yellow | foreground}yellow{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[33myellow\x1b[0m", formatted)
+}
+
+func TestFormatterForegroundDefault(test *testing.T) {
+	formatted, err := formatter.Format("{green | foreground}green{default | foreground}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[32mgreen\x1b[39m", formatted)
+}
+
+func TestFormatterForegroundForeground(test *testing.T) {
+	formatted, err := formatter.Format("{black | foreground | foreground}black{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[30mblack\x1b[0m", formatted)
+}
+
+func TestFormatterForegroundInvalid(test *testing.T) {
+	formatted, err := formatter.Format("{print 6 | foreground}yellow{normal}")
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
+}
+
+func TestFormatterForegroundError(test *testing.T) {
+	formatted, err := formatter.Format("{blink | foreground}yellow{normal}")
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
+}
+
+func TestFormatterForegroundBrightColors(test *testing.T) {
+	formatted, err := formatter.Format("{cyan | bright | foreground}cyan{normal}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[96mcyan\x1b[0m", formatted)
+}
+
+func TestFormatterError(test *testing.T) {
+	formatted, err := formatter.Format("Error", error(&StructError{"message"}))
+
+	assert.NoError(test, err)
+	assert.Equal(test, "Error message", formatted)
+}
+
+func TestFormatterValueError(test *testing.T) {
+	formatted, err := formatter.Format("Error", error(StructValueError{"message"}))
+
+	assert.NoError(test, err)
+	assert.Equal(test, "Error message", formatted)
+}
+
+func TestFormatterBold(test *testing.T) {
+	formatted, err := formatter.Format("{bold}text{bold | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[1mtext\x1b[21m", formatted)
+}
+
+func TestFormatterFaint(test *testing.T) {
+	formatted, err := formatter.Format("{faint}text{faint | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[2mtext\x1b[22m", formatted)
+}
+
+func TestFormatterItalic(test *testing.T) {
+	formatted, err := formatter.Format("{italic}text{italic | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[3mtext\x1b[23m", formatted)
+}
+
+func TestFormatterUnderline(test *testing.T) {
+	formatted, err := formatter.Format("{underline}text{underline | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[4mtext\x1b[24m", formatted)
+}
+
+func TestFormatterBlink(test *testing.T) {
+	formatted, err := formatter.Format("{blink}text{blink | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[5mtext\x1b[25m", formatted)
+}
+
+func TestFormatterInvert(test *testing.T) {
+	formatted, err := formatter.Format("{invert}text{invert | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[7mtext\x1b[27m", formatted)
+}
+
+func TestFormatterHide(test *testing.T) {
+	formatted, err := formatter.Format("{hide}text{hide | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[8mtext\x1b[28m", formatted)
+}
+
+func TestFormatterStrike(test *testing.T) {
+	formatted, err := formatter.Format("{strike}text{strike | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[9mtext\x1b[29m", formatted)
+}
+
+func TestFormatterOverline(test *testing.T) {
+	formatted, err := formatter.Format("{overline}text{overline | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[53mtext\x1b[55m", formatted)
+}
+
+func TestFormatterOffOff(test *testing.T) {
+	formatted, err := formatter.Format("{blink | off | off}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[25m", formatted)
+}
+
+func TestFormatterOffError(test *testing.T) {
+	formatted, err := formatter.Format("{print 5 | off}")
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
+}
+
+func TestFormatterOffInvalid(test *testing.T) {
+	formatted, err := formatter.Format("{red | off}")
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
+}
+
+func TestFormatterIPAddress(test *testing.T) {
+	formatted, err := formatter.Format("{ip}")
+
+	assert.NoError(test, err)
+	assert.NotEmpty(test, formatted)
+}
+
+func TestFormatterIPAddressDialError(test *testing.T) {
+	defer func() {
+		formatter.Dial = net.Dial
+	}()
+
+	controller := gomock.NewController(test)
+	defer controller.Finish()
+
+	connection := mocks.NewMockConn(controller)
+
+	connection.EXPECT().Close().Times(1)
+	connection.EXPECT().LocalAddr().Times(1).Return(new(net.UDPAddr))
+
+	formatter.Dial = func(string, string) (net.Conn, error) {
+		return connection, Error("error")
+	}
+
+	formatted, err := formatter.Format("{ip}")
+
+	assert.NoError(test, err)
+	assert.NotEmpty(test, formatted)
+}
+
+func TestFormatterIPAddressDialNil(test *testing.T) {
+	defer func() {
+		formatter.Dial = net.Dial
+	}()
+
+	formatter.Dial = func(string, string) (net.Conn, error) {
+		return nil, Error("error")
+	}
+
+	formatted, err := formatter.Format("{ip}")
+
+	assert.NoError(test, err)
+	assert.NotEmpty(test, formatted)
+	assert.Equal(test, "127.0.0.1", formatted)
+}
+
+func TestFormatterIPAddressCloseError(test *testing.T) {
+	defer func() {
+		formatter.Dial = net.Dial
+	}()
+
+	controller := gomock.NewController(test)
+	defer controller.Finish()
+
+	connection := mocks.NewMockConn(controller)
+
+	connection.EXPECT().Close().Times(1).Return(Error("error"))
+	connection.EXPECT().LocalAddr().Times(1).Return(new(net.UDPAddr))
+
+	formatter.Dial = func(string, string) (net.Conn, error) {
+		return connection, nil
+	}
+
+	formatted, err := formatter.Format("{ip}")
+
+	assert.NoError(test, err)
+	assert.NotEmpty(test, formatted)
+}
+
+func TestFormatterUser(test *testing.T) {
+	formatted, err := formatter.Format("{user}")
+
+	assert.NoError(test, err)
+	assert.NotEmpty(test, formatted)
+}
+
+func TestFormatterUserError(test *testing.T) {
+	defer func() {
+		formatter.Current = user.Current
+	}()
+
+	formatter.Current = func() (*user.User, error) {
+		return nil, Error("error")
+	}
+
+	formatted, err := formatter.Format("{user}")
+
+	assert.NoError(test, err)
+	assert.Empty(test, formatted)
+}
+
+func TestFormatterNow(test *testing.T) {
+	formatted, err := formatter.Format("{now}")
+
+	assert.NoError(test, err)
+	assert.NotEmpty(test, formatted)
+}
+
+func TestFormatterISO8601(test *testing.T) {
+	formatted, err := formatter.Format("{now | iso8601}")
+
+	assert.NoError(test, err)
+	assert.NotEmpty(test, formatted)
+}
+
+func TestFormatterUpper(test *testing.T) {
+	formatted, err := formatter.Format(`{"text" | upper}`)
+
+	assert.NoError(test, err)
+	assert.Equal(test, "TEXT", formatted)
+}
+
+func TestFormatterLower(test *testing.T) {
+	formatted, err := formatter.Format(`{"teXt" | lower}`)
+
+	assert.NoError(test, err)
+	assert.Equal(test, "text", formatted)
+}
+
+func TestFormatterCapitalize(test *testing.T) {
+	formatted, err := formatter.Format(`{"text" | capitalize}`)
+
+	assert.NoError(test, err)
+	assert.Equal(test, "Text", formatted)
+}
+
+func TestFormatterColor(test *testing.T) {
+	formatted, err := formatter.Format(`{color "red"}red{normal}`)
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[31mred\x1b[0m", formatted)
+}
+
+func TestFormatterColorHex(test *testing.T) {
+	formatted, err := formatter.Format(`{color "0xF3AC67"}funky{normal}`)
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\x1b[38;2;243;172;103mfunky\x1b[0m", formatted)
+}
+
+func TestFormatterColorHexError(test *testing.T) {
+	formatted, err := formatter.Format(`{color "0xFFF3AC67"}funky{normal}`)
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
+}
+
+func TestFormatterColorInvalid(test *testing.T) {
+	formatted, err := formatter.Format(`{color "foo"}`)
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
+}
+
+func TestFormatterBell(test *testing.T) {
+	formatted, err := formatter.Format("{bell}")
+
+	assert.NoError(test, err)
+	assert.Equal(test, "\a", formatted)
 }
