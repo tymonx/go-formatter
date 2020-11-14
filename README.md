@@ -358,7 +358,8 @@ fmt.Println(formatted)
 
 ### Built-in functions
 
-For more details please the `formatter` package documentation.
+For more details please see the `formatter` package
+[documentation](https://tymonx.gitlab.io/go-formatter/doc/pkg/gitlab.com/tymonx/go-formatter/formatter/).
 
 Run example:
 
