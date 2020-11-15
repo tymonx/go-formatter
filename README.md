@@ -14,7 +14,14 @@ The Go Formatter library implements **replacement fields** surrounded by curly b
 *   Use custom placeholder string. Default is `p`
 *   Use custom replacement delimiters. Default are `{` and `}`
 *   Use custom replacement functions with transformation using pipeline `|`
-*   Many different handy built-in functions like for example getting local IP address `{ip}`
+*   Many different handy built-in functions `{name}`
+*   Support for text colorization using `{color}`, `{rgb}`, `{bright}`, `{background}` and so on
+*   Support for setting text attributes like **bold**, _italic_, ~~strike~~, blink and so on
+*   Support for getting OS values like `{ip}`, `{user}`, `{hostname}`, `{cwd}`, `{pid}`, `{env}` and so on
+*   Support for getting and formatting time using `{now}`, `{rfc3339}`, `{iso8601}` and so on
+*   Support for string transformation using `{lower}`, `{upper}`, `{capitalize}` and so on
+*   Support for path transformation using `{absolute}`, `{base}`, `{directory}`, `{clean}`, `{extension}` and so on
+*   Auto ANSI escape sequences detection and forcing it using the `FORCE_ESCAPE_SEQUENCES` environment variable
 *   Under the hood it uses the standard [text/template](https://golang.org/pkg/text/template/) package
 
 ## Usage
@@ -370,3 +377,24 @@ go run ./examples/functions/
 Output:
 
 ![Example](assets/images/example.png "Example")
+
+### Overriding ANSI escape sequences detection
+
+By default, the `formatter` package determines whether or not to use
+[ANSI escape sequences](https://en.wikipedia.org/wiki/ANSI_escape_code) based
+on whether it's connected to a **TTY** or not. This works for most use cases,
+but may not behave as expected if you use the `formatter` package in a pipeline
+of commands, where **STDOUT** is being piped to another command.
+
+To force it, add `FORCE_ESCAPE_SEQUENCES=1` to the environment
+you're running in. For example:
+
+```plaintext
+FORCE_ESCAPE_SEQUENCES=1 ./app | tee output.log
+```
+
+Supported values for the `FORCE_ESCAPE_SEQUENCES` environment variable:
+
+*   To force enable: `1`, `true`, `enable`, `on`, `yes`, `y`
+*   To force disable: `0`, `false`, `disable`, `off`, `no`, `n`
+*   Auto detection when variable is unset, empty or contains other values

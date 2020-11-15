@@ -44,6 +44,7 @@ docker run \
     --volume "/tmp/go/:/go/" \
     --volume "/etc/group:/etc/group:ro" \
     --volume "/etc/passwd:/etc/passwd:ro" \
+    --env FORCE_ESCAPE_SEQUENCES=true \
     --security-opt=label=disable \
     --workdir "$(pwd)" \
     --entrypoint /bin/bash \
