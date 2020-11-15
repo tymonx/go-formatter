@@ -102,5 +102,13 @@ List of built-in functions:
 	clean      - Returns the shortest path name equivalent to path by purely lexical processing
 	directory  - Returns all but the last element of path, typically the path's directory
 	extension  - Returns the file name extension used by path. Example: extension "/dir/dir/file.ext"
+
+Built-in object functions
+
+List of built-in functions:
+
+	fields    - Print also struct field names for given object. Example: p | fields
+	json      - Marshal object to JSON. Example: p | json
+	indent    - Indent marshaled JSON. Example: p | json | indent
 */
 package formatter

@@ -413,6 +413,19 @@ func TestFormatterObjectArguments(test *testing.T) {
 	assert.Equal(test, "6 5 4 6 b", formatted)
 }
 
+func TestFormatterObjectArgumentsError(test *testing.T) {
+	formatted, err := formatter.New().SetLeftDelimiter("[").Format("[.Z} [.Y} [.X} [.Z}", struct {
+		X, Y, Z int
+	}{
+		X: 7,
+		Y: 8,
+		Z: 9,
+	}, "c")
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
+}
+
 func TestFormatterReset(test *testing.T) {
 	f := formatter.New()
 
@@ -954,4 +967,87 @@ func TestFormatterAreEscapeSequencesSupported(test *testing.T) {
 
 	assert.NoError(test, os.Setenv(formatter.ForceEscapeSequencesEnv, ""))
 	assert.Equal(test, supported, formatter.AreEscapeSequencesSupported())
+}
+
+func TestFormatterObject(test *testing.T) {
+	object := struct {
+		Value   int
+		Message string
+	}{
+		Value:   2,
+		Message: "text",
+	}
+
+	formatted, err := formatter.Format("", object)
+
+	assert.NoError(test, err)
+	assert.Equal(test, "{2 text}", formatted)
+
+	formatted, err = formatter.Format(" ", object)
+
+	assert.NoError(test, err)
+	assert.Equal(test, " {2 text}", formatted)
+}
+
+func TestFormatterFields(test *testing.T) {
+	object := struct {
+		Value   int
+		Message string
+	}{
+		Value:   3,
+		Message: "text",
+	}
+
+	formatted, err := formatter.Format("{p | fields}", object)
+
+	assert.NoError(test, err)
+	assert.Equal(test, "{Value:3 Message:text}", formatted)
+}
+
+func TestFormatterJSON(test *testing.T) {
+	object := struct {
+		Value   int
+		Message string
+	}{
+		Value:   4,
+		Message: "text",
+	}
+
+	formatted, err := formatter.Format("{p | json}", object)
+
+	assert.NoError(test, err)
+	assert.Equal(test, `{"Value":4,"Message":"text"}`, formatted)
+}
+
+func TestFormatterJSONIndent(test *testing.T) {
+	object := struct {
+		Value   int
+		Message string
+	}{
+		Value:   5,
+		Message: "text",
+	}
+
+	formatted, err := formatter.Format("{p | json | indent}", object)
+
+	assert.NoError(test, err)
+	assert.Equal(test, "{\n\t\"Value\": 5,\n\t\"Message\": \"text\"\n}", formatted)
+}
+
+func TestFormatterJSONIndentError(test *testing.T) {
+	formatted, err := formatter.Format("{print \"[\" | indent}")
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
+}
+
+func TestFormatterJSONError(test *testing.T) {
+	object := struct {
+		Invalid chan struct{}
+	}{}
+
+	formatted, err := formatter.Format("{p | json}", object)
+
+	assert.Error(test, err)
+	assert.Empty(test, formatted)
 }

@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -272,19 +273,15 @@ func (f *Formatter) AreEscapeSequencesEnabled() bool {
 func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...interface{}) error {
 	var object interface{}
 
+	var objectPosition int
+
 	used := make(map[int]bool)
 	placeholders := make(template.FuncMap)
-
 	placeholders[f.placeholder] = argumentAutomatic(used, arguments)
 
 	for position, argument := range arguments {
 		placeholder := f.placeholder + strconv.Itoa(position)
 		placeholders[placeholder] = argumentValue(used, position, argument)
-
-		if _, ok := argument.(error); ok {
-			continue
-		}
-
 		valueOf := reflect.ValueOf(argument)
 
 		switch valueOf.Kind() {
@@ -296,22 +293,17 @@ func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...
 			}
 		case reflect.Struct:
 			object = argument
+			objectPosition = position
 		case reflect.Ptr:
 			if isObjectPointer(valueOf) {
 				object = argument
+				objectPosition = position
 			}
 		}
 	}
 
-	t := template.New("").Delims(f.leftDelimiter, f.rightDelimiter)
-
-	if f.escapeSequences {
-		t.Funcs(gEscapeFunctions)
-	} else {
-		t.Funcs(gDummyFunctions)
-	}
-
-	t.Funcs(gFunctions).Funcs(placeholders).Funcs(template.FuncMap(f.functions))
+	t := template.New("").Delims(f.leftDelimiter, f.rightDelimiter).Funcs(f.getEscapeFunctions()).
+		Funcs(gFunctions).Funcs(placeholders).Funcs(template.FuncMap(f.functions))
 
 	if _, err := t.Parse(message); err != nil {
 		return err
@@ -325,42 +317,57 @@ func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...
 		return nil
 	}
 
+	if err := f.objectUsed(used, objectPosition, object, message); err != nil {
+		return err
+	}
+
+	separator := getSeparator(message)
 	message = ""
 
 	for position, argument := range arguments {
-		if !isArgumentUsed(used, position, argument) {
-			message += " " + fmt.Sprint(argument)
+		if !used[position] {
+			message += separator + fmt.Sprint(argument)
+			separator = " "
 		}
 	}
 
 	return write(writer, message)
 }
 
-func isObjectPointer(value reflect.Value) bool {
-	return !value.IsNil() && (value.Elem().Kind() == reflect.Struct)
+func (f *Formatter) getEscapeFunctions() template.FuncMap {
+	if f.escapeSequences {
+		return gEscapeFunctions
+	}
+
+	return gDummyFunctions
 }
 
-func isArgumentUsed(used map[int]bool, position int, argument interface{}) bool {
-	if _, ok := argument.(error); ok {
-		return used[position]
+func (f *Formatter) objectUsed(used map[int]bool, position int, object interface{}, message string) (err error) {
+	if (object == nil) || used[position] {
+		return nil
 	}
 
-	valueOf := reflect.ValueOf(argument)
+	var r *regexp.Regexp
 
-	switch valueOf.Kind() {
-	case reflect.Map:
-		if reflect.TypeOf(argument).Key().Kind() == reflect.String {
-			return true
-		}
-	case reflect.Struct:
-		return true
-	case reflect.Ptr:
-		if isObjectPointer(valueOf) {
-			return true
-		}
+	if r, err = regexp.Compile(f.leftDelimiter + `\s*(\.|[^\.].* \.).+` + f.rightDelimiter); err != nil {
+		return err
 	}
 
-	return used[position]
+	used[position] = r.MatchString(message)
+
+	return nil
+}
+
+func getSeparator(message string) string {
+	if (message == "") || (message[len(message)-1] == ' ') {
+		return ""
+	}
+
+	return " "
+}
+
+func isObjectPointer(value reflect.Value) bool {
+	return !value.IsNil() && (value.Elem().Kind() == reflect.Struct)
 }
 
 func argumentValue(used map[int]bool, position int, argument interface{}) func() interface{} {
