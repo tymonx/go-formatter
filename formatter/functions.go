@@ -109,4 +109,7 @@ var gFunctions = template.FuncMap{ // nolint: gochecknoglobals
 	"clean":      filepath.Clean,
 	"directory":  filepath.Dir,
 	"extension":  filepath.Ext,
+	"json":       setJSON,
+	"indent":     setIndent,
+	"fields":     setFields,
 }

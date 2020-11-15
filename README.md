@@ -21,6 +21,7 @@ The Go Formatter library implements **replacement fields** surrounded by curly b
 *   Support for getting and formatting time using `{now}`, `{rfc3339}`, `{iso8601}` and so on
 *   Support for string transformation using `{lower}`, `{upper}`, `{capitalize}` and so on
 *   Support for path transformation using `{absolute}`, `{base}`, `{directory}`, `{clean}`, `{extension}` and so on
+*   Support for object formatting using `{fields}`, `{json}`, `{indent}` and so on
 *   Auto ANSI escape sequences detection and forcing it using the `FORCE_ESCAPE_SEQUENCES` environment variable
 *   Under the hood it uses the standard [text/template](https://golang.org/pkg/text/template/) package
 
