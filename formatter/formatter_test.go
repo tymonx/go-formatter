@@ -18,10 +18,12 @@ import (
 	"bytes"
 	"fmt"
 	"net"
+	"os"
 	"os/user"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/mattn/go-isatty"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/tymonx/go-formatter/formatter"
 	"gitlab.com/tymonx/go-formatter/mocks"
@@ -211,7 +213,7 @@ func ExampleFormatWriter() {
 	// Output: Writer bar 3 foo
 }
 
-func ExampleFormat_setFunctions() {
+func ExampleFormatter_SetFunctions() {
 	functions := formatter.Functions{
 		"str": func() string {
 			return "text"
@@ -237,7 +239,7 @@ func ExampleFormat_setFunctions() {
 	// Output: Custom functions text 5 3 true 4.5
 }
 
-func ExampleFormat_setPlaceholder() {
+func ExampleFormatter_SetPlaceholder() {
 	formatted, err := formatter.New().SetPlaceholder("arg").Format("Custom placeholder {arg1} {arg0}", "2", 3)
 
 	if err != nil {
@@ -248,7 +250,7 @@ func ExampleFormat_setPlaceholder() {
 	// Output: Custom placeholder 3 2
 }
 
-func ExampleFormat_setDelimiters() {
+func ExampleFormatter_SetDelimiters() {
 	formatted, err := formatter.New().SetDelimiters("<", ">").Format("Custom delimiters <p1> <p0>", "4", 3)
 
 	if err != nil {
@@ -317,6 +319,42 @@ func ExampleFormat_backgroundBrightColors() {
 	}
 
 	fmt.Println(formatted)
+}
+
+func ExampleFormatter_SetEscapeSequences() {
+	f := formatter.New()
+
+	fmt.Println(f.SetEscapeSequences(false).AreEscapeSequencesEnabled())
+	fmt.Println(f.SetEscapeSequences(true).AreEscapeSequencesEnabled())
+	// Output:
+	// false
+	// true
+}
+
+func ExampleFormatter_EnableEscapeSequences() {
+	fmt.Println(formatter.New().EnableEscapeSequences().AreEscapeSequencesEnabled())
+	// Output: true
+}
+
+func ExampleFormatter_DisableEscapeSequences() {
+	formatted, err := formatter.New().DisableEscapeSequences().Format("{rgb 255 134 5 | background}Escape sequences disabled{normal}")
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(formatted)
+	// Output: Escape sequences disabled
+}
+
+func ExampleFormatter_AreEscapeSequencesEnabled() {
+	f := formatter.New()
+
+	fmt.Println(f.DisableEscapeSequences().AreEscapeSequencesEnabled())
+	fmt.Println(f.EnableEscapeSequences().AreEscapeSequencesEnabled())
+	// Output:
+	// false
+	// true
 }
 
 func TestFormatterNew(test *testing.T) {
@@ -899,4 +937,21 @@ func TestFormatterBell(test *testing.T) {
 
 	assert.NoError(test, err)
 	assert.Equal(test, "\a", formatted)
+}
+
+func TestFormatterAreEscapeSequencesSupported(test *testing.T) {
+	defer func(value string) {
+		assert.NoError(test, os.Setenv(formatter.ForceEscapeSequencesEnv, value))
+	}(os.Getenv(formatter.ForceEscapeSequencesEnv))
+
+	assert.NoError(test, os.Setenv(formatter.ForceEscapeSequencesEnv, "true"))
+	assert.True(test, formatter.AreEscapeSequencesSupported())
+
+	assert.NoError(test, os.Setenv(formatter.ForceEscapeSequencesEnv, "false"))
+	assert.False(test, formatter.AreEscapeSequencesSupported())
+
+	supported := (os.Getenv("TERM") != "dumb") && (isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()))
+
+	assert.NoError(test, os.Setenv(formatter.ForceEscapeSequencesEnv, ""))
+	assert.Equal(test, supported, formatter.AreEscapeSequencesSupported())
 }

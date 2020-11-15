@@ -22,7 +22,38 @@ import (
 	"time"
 )
 
-var gFunctions = template.FuncMap{ // nolint: gochecknoglobals
+var gDummyFunctions = template.FuncMap{ // nolint: gochecknoglobals
+	"reset":      setDummy,
+	"normal":     setDummy,
+	"default":    setDummy,
+	"bold":       setDummy,
+	"faint":      setDummy,
+	"italic":     setDummy,
+	"underline":  setDummy,
+	"overline":   setDummy,
+	"blink":      setDummy,
+	"invert":     setDummy,
+	"hide":       setDummy,
+	"strike":     setDummy,
+	"off":        setDummyTransform,
+	"bell":       setDummy,
+	"black":      setDummy,
+	"red":        setDummy,
+	"green":      setDummy,
+	"yellow":     setDummy,
+	"blue":       setDummy,
+	"magenta":    setDummy,
+	"cyan":       setDummy,
+	"white":      setDummy,
+	"gray":       setDummy,
+	"rgb":        setDummyRGB,
+	"bright":     setDummyTransform,
+	"background": setDummyTransform,
+	"foreground": setDummyTransform,
+	"color":      setDummyTransform,
+}
+
+var gEscapeFunctions = template.FuncMap{ // nolint: gochecknoglobals
 	"reset":      setNormal,
 	"normal":     setNormal,
 	"default":    setNormal,
@@ -51,6 +82,9 @@ var gFunctions = template.FuncMap{ // nolint: gochecknoglobals
 	"background": setBackground,
 	"foreground": setForeground,
 	"color":      setColor,
+}
+
+var gFunctions = template.FuncMap{ // nolint: gochecknoglobals
 	"ip":         getIPAddress,
 	"user":       getUser,
 	"executable": os.Executable,

@@ -16,8 +16,11 @@ package formatter
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
+
+	"github.com/mattn/go-isatty"
 )
 
 const (
@@ -166,6 +169,22 @@ var gColorMap = map[string]string{ // nolint: gochecknoglobals
 	"cyan":    "\033[36m",
 	"white":   "\033[37m",
 	"gray":    "\033[90m",
+}
+
+func isTerminal() bool {
+	return isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
+}
+
+func setDummy() string {
+	return ""
+}
+
+func setDummyTransform(string) (string, error) {
+	return "", nil
+}
+
+func setDummyRGB(int, int, int) string {
+	return ""
 }
 
 func setNormal() string {

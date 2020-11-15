@@ -18,16 +18,21 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"text/template"
 )
 
+var gEscapeSequences = AreEscapeSequencesSupported() // nolint: gochecknoglobals
+
 // These constants define default values used by formatter.
 const (
-	DefaultPlaceholder    = "p"
-	DefaultLeftDelimiter  = "{"
-	DefaultRightDelimiter = "}"
+	DefaultPlaceholder      = "p"
+	DefaultLeftDelimiter    = "{"
+	DefaultRightDelimiter   = "}"
+	ForceEscapeSequencesEnv = "FORCE_ESCAPE_SEQUENCES"
 )
 
 // Named defines named arguments.
@@ -39,19 +44,21 @@ type Functions map[string]interface{}
 // Formatter defines a formatter object that formats string using
 // “replacement fields” surrounded by curly braces {}.
 type Formatter struct {
-	placeholder    string
-	leftDelimiter  string
-	rightDelimiter string
-	functions      Functions
+	placeholder     string
+	leftDelimiter   string
+	rightDelimiter  string
+	escapeSequences bool
+	functions       Functions
 }
 
 // New creates a new formatter object.
 func New() *Formatter {
 	return &Formatter{
-		placeholder:    DefaultPlaceholder,
-		leftDelimiter:  DefaultLeftDelimiter,
-		rightDelimiter: DefaultRightDelimiter,
-		functions:      Functions{},
+		placeholder:     DefaultPlaceholder,
+		leftDelimiter:   DefaultLeftDelimiter,
+		rightDelimiter:  DefaultRightDelimiter,
+		escapeSequences: gEscapeSequences,
+		functions:       Functions{},
 	}
 }
 
@@ -69,6 +76,19 @@ func MustFormat(message string, arguments ...interface{}) string {
 // FormatWriter formats string to writer.
 func FormatWriter(writer io.Writer, message string, arguments ...interface{}) error {
 	return New().FormatWriter(writer, message, arguments...)
+}
+
+// AreEscapeSequencesSupported returns true if environment supports ANSI escape sequences.
+// Otherwise, it returns false.
+func AreEscapeSequencesSupported() bool {
+	switch strings.TrimSpace(strings.ToLower(os.Getenv(ForceEscapeSequencesEnv))) {
+	case "1", "true", "on", "yes", "enable", "y":
+		return true
+	case "0", "false", "off", "no", "disable", "n":
+		return false
+	default:
+		return (os.Getenv("TERM") != "dumb") && isTerminal()
+	}
 }
 
 // Format formats string.
@@ -226,6 +246,28 @@ func (f *Formatter) ResetRightDelimiter() *Formatter {
 	return f
 }
 
+// SetEscapeSequences enables or disables ANSI escape sequences in formatted messages.
+func (f *Formatter) SetEscapeSequences(escapeSequences bool) *Formatter {
+	f.escapeSequences = escapeSequences
+	return f
+}
+
+// EnableEscapeSequences allows ANSI escape sequences in formatted messages.
+func (f *Formatter) EnableEscapeSequences() *Formatter {
+	return f.SetEscapeSequences(true)
+}
+
+// DisableEscapeSequences removes ANSI escape sequences in formatted messages.
+func (f *Formatter) DisableEscapeSequences() *Formatter {
+	return f.SetEscapeSequences(false)
+}
+
+// AreEscapeSequencesEnabled returns true if escape sequences are allowed in formatted messages.
+// Otherwise, it returns false.
+func (f *Formatter) AreEscapeSequencesEnabled() bool {
+	return f.escapeSequences
+}
+
 // FormatWriter formats string to writer.
 func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...interface{}) error {
 	var object interface{}
@@ -261,8 +303,15 @@ func (f *Formatter) FormatWriter(writer io.Writer, message string, arguments ...
 		}
 	}
 
-	t := template.New("").Delims(f.leftDelimiter, f.rightDelimiter).
-		Funcs(gFunctions).Funcs(placeholders).Funcs(template.FuncMap(f.functions))
+	t := template.New("").Delims(f.leftDelimiter, f.rightDelimiter)
+
+	if f.escapeSequences {
+		t.Funcs(gEscapeFunctions)
+	} else {
+		t.Funcs(gDummyFunctions)
+	}
+
+	t.Funcs(gFunctions).Funcs(placeholders).Funcs(template.FuncMap(f.functions))
 
 	if _, err := t.Parse(message); err != nil {
 		return err

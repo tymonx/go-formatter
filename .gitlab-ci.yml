@@ -38,6 +38,8 @@ lint:
 
 test:
     extends: .go-test
+    variables:
+        FORCE_ESCAPE_SEQUENCES: "enable"
     after_script:
         - bash <(wget -qO- https://coverage.codacy.com/get.sh) report
 
