@@ -15,7 +15,6 @@
 package formatter
 
 import (
-	"log"
 	"net"
 )
 
@@ -30,9 +29,8 @@ func getIPAddress() string {
 	}
 
 	defer func() {
-		if err = connection.Close(); err != nil {
-			log.Print("formatter error:", err)
-		}
+		err = connection.Close()
+		_ = err
 	}()
 
 	return connection.LocalAddr().(*net.UDPAddr).IP.String()
