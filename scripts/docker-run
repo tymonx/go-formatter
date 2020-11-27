@@ -21,13 +21,19 @@ set -eo pipefail
 # This will allow to preserve command invocation from unwanted behavior
 DOCKER_ARGUMENTS=$@
 
+if [ -z "${GOPATH:-}" ]; then
+    if command -v go >/dev/null 2>&1; then
+        GOPATH="$(go env GOPATH)"
+    fi
+fi
+
 # Create a temporary directory for all downloaded Go modules. To have
 # the correct file mode permissions with proper user and group,
 # this directory must be created before running the docker run command
 # with the --volume argument. Otherwise, docker will create directory
 # for us with directory properties from container. Mostly of time it is
 # unwanted root:root
-mkdir -p /tmp/go/
+mkdir -p "${GOPATH:-/tmp/go}"
 
 # Run Docker image as container. Mount current working directory to container.
 # This will allow all commands from Docker to have access to files and
@@ -41,12 +47,12 @@ docker run \
     --user "$(id -u):$(id -g)" \
     --volume "$(pwd):$(pwd)" \
     --volume "/tmp/:/tmp/" \
-    --volume "/tmp/go/:/go/" \
+    --volume "${GOPATH:-/tmp/go}:/go/" \
     --volume "/etc/group:/etc/group:ro" \
     --volume "/etc/passwd:/etc/passwd:ro" \
     --env FORCE_ESCAPE_SEQUENCES=true \
     --security-opt=label=disable \
     --workdir "$(pwd)" \
     --entrypoint /bin/bash \
-    "registry.gitlab.com/tymonx/docker-go:1.14.3" \
+    "registry.gitlab.com/tymonx/docker-go:1.15.5" \
     ${DOCKER_ARGUMENTS:+-c "$DOCKER_ARGUMENTS"}
