@@ -6,24 +6,24 @@ The Go Formatter library implements **replacement fields** surrounded by curly b
 
 ## Features
 
-*   Format string by providing arguments without using placeholders or format verbs `%`
-*   Format string using automatic placeholder `{p}`
-*   Format string using positional placeholders `{pN}`
-*   Format string using named placeholders `{name}`
-*   Format string using object placeholders `{.Field}`, `{p.Field}` and `{pN.Field}` where `Field` is an exported `struct` field or method
-*   Use custom placeholder string. Default is `p`
-*   Use custom replacement delimiters. Default are `{` and `}`
-*   Use custom replacement functions with transformation using pipeline `|`
-*   Many different handy built-in functions `{name}`
-*   Support for text colorization using `{color}`, `{rgb}`, `{bright}`, `{background}` and so on
-*   Support for setting text attributes like **bold**, _italic_, ~~strike~~, blink and so on
-*   Support for getting OS values like `{ip}`, `{user}`, `{hostname}`, `{cwd}`, `{pid}`, `{env}` and so on
-*   Support for getting and formatting time using `{now}`, `{rfc3339}`, `{iso8601}` and so on
-*   Support for string transformation using `{lower}`, `{upper}`, `{capitalize}` and so on
-*   Support for path transformation using `{absolute}`, `{base}`, `{directory}`, `{clean}`, `{extension}` and so on
-*   Support for object formatting using `{fields}`, `{json}`, `{indent}` and so on
-*   Auto ANSI escape sequences detection and forcing it using the `FORCE_ESCAPE_SEQUENCES` environment variable
-*   Under the hood it uses the standard [text/template](https://golang.org/pkg/text/template/) package
+* Format string by providing arguments without using placeholders or format verbs `%`
+* Format string using automatic placeholder `{p}`
+* Format string using positional placeholders `{pN}`
+* Format string using named placeholders `{name}`
+* Format string using object placeholders `{.Field}`, `{p.Field}` and `{pN.Field}` where `Field` is an exported `struct` field or method
+* Use custom placeholder string. Default is `p`
+* Use custom replacement delimiters. Default are `{` and `}`
+* Use custom replacement functions with transformation using pipeline `|`
+* Many different handy built-in functions `{name}`
+* Support for text colorization using `{color}`, `{rgb}`, `{bright}`, `{background}` and so on
+* Support for setting text attributes like **bold**, _italic_, ~~strike~~, blink and so on
+* Support for getting OS values like `{ip}`, `{user}`, `{hostname}`, `{cwd}`, `{pid}`, `{env}` and so on
+* Support for getting and formatting time using `{now}`, `{rfc3339}`, `{iso8601}` and so on
+* Support for string transformation using `{lower}`, `{upper}`, `{capitalize}` and so on
+* Support for path transformation using `{absolute}`, `{base}`, `{directory}`, `{clean}`, `{extension}` and so on
+* Support for object formatting using `{fields}`, `{json}`, `{indent}` and so on
+* Auto ANSI escape sequences detection and forcing it using the `FORCE_ESCAPE_SEQUENCES` environment variable
+* Under the hood it uses the standard [text/template](https://golang.org/pkg/text/template/) package
 
 ## Usage
 
@@ -263,7 +263,8 @@ functions := formatter.Functions{
     },
 }
 
-formatted, err := formatter.New().SetFunctions(functions).Format("Custom functions {str} {p} {number} {boolean} {floating} {number | transform}", 5)
+formatted, err := formatter.New().SetFunctions(functions).
+    Format("Custom functions {str} {p} {number} {boolean} {floating} {number | transform}", 5)
 
 fmt.Println(formatted)
 ```
@@ -396,6 +397,6 @@ FORCE_ESCAPE_SEQUENCES=1 ./app | tee output.log
 
 Supported values for the `FORCE_ESCAPE_SEQUENCES` environment variable:
 
-*   To force enable: `1`, `true`, `enable`, `on`, `yes`, `y`
-*   To force disable: `0`, `false`, `disable`, `off`, `no`, `n`
-*   Auto detection when variable is unset, empty or contains other values
+* To force enable: `1`, `true`, `enable`, `on`, `yes`, `y`
+* To force disable: `0`, `false`, `disable`, `off`, `no`, `n`
+* Auto detection when variable is unset, empty or contains other values
