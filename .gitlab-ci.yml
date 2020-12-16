@@ -15,28 +15,22 @@
 ---
 include:
     - project: 'tymonx/gitlab-ci'
-      ref: v0.69.0
-      file: '/templates/generic/go.yml'
-    - project: 'tymonx/gitlab-ci'
-      ref: v0.69.0
-      file: '/templates/generic/yaml.yml'
-    - project: 'tymonx/gitlab-ci'
-      ref: v0.69.0
-      file: '/templates/generic/markdown.yml'
+      ref: v0.73.0
+      file: '/templates/generic.yml'
 
-yaml:
-    extends: .yaml
+yaml-lint:
+    extends: .yaml-lint
 
-markdown:
-    extends: .markdown
+markdown-lint:
+    extends: .markdown-lint
 
-build:
+go-build:
     extends: .go-build
 
-lint:
+go-lint:
     extends: .go-lint
 
-test:
+go-test:
     extends: .go-test
     variables:
         FORCE_ESCAPE_SEQUENCES: "enable"
@@ -46,5 +40,5 @@ test:
 pages:
     extends: .go-doc
     dependencies:
-        - test
+        - go-test
 ...
