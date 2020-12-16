@@ -93,9 +93,9 @@ Positional placeholders dir/file:2:func1():
 
 ```go
 formatted, err := formatter.Format("Named placeholders {file}:{line}:{function}():", formatter.Named{
-	"line":     3,
-	"function": "func1",
-	"file":     "dir/file",
+    "line":     3,
+    "function": "func1",
+    "file":     "dir/file",
 })
 
 fmt.Println(formatted)
@@ -116,13 +116,13 @@ section from the standard [text/template](https://golang.org/pkg/text/template) 
 
 ```go
 object := struct {
-	Line     int
-	Function string
-	File     string
+    Line     int
+    Function string
+    File     string
 }{
-	Line:     4,
-	Function: "func1",
-	File:     "dir/file",
+    Line:     4,
+    Function: "func1",
+    File:     "dir/file",
 }
 
 formatted, err := formatter.Format("Object placeholders {.File}:{.Line}:{.Function}():", object)
@@ -145,15 +145,15 @@ section from the standard [text/template](https://golang.org/pkg/text/template) 
 
 ```go
 object1 := struct {
-	Message string
+    Message string
 }{
-	Message: "object1",
+    Message: "object1",
 }
 
 object2 := struct {
-	X int
+    X int
 }{
-	X: 2,
+    X: 2,
 }
 
 formatted, err := formatter.Format("Object with automatic placeholder {p.Message} {p.X}", object1, object2)
@@ -176,15 +176,15 @@ section from the standard [text/template](https://golang.org/pkg/text/template) 
 
 ```go
 object1 := struct {
-	Message string
+    Message string
 }{
-	Message: "object1",
+    Message: "object1",
 }
 
 object2 := struct {
-	X int
+    X int
 }{
-	X: 2,
+    X: 2,
 }
 
 formatted, err := formatter.Format("Object with positional placeholders {p1.X} {p0.Message}", object1, object2)
@@ -202,13 +202,13 @@ Object with positional placeholders 2 object1
 
 ```go
 objectPointer := &struct {
-	X int
-	Y int
-	Z int
+    X int
+    Y int
+    Z int
 }{
-	X: 2,
-	Z: 6,
-	Y: 3,
+    X: 2,
+    Z: 6,
+    Y: 3,
 }
 
 formatted, err := formatter.Format("Mixed placeholders {.X}.{p}.{.Y}.{.Z} {p1} {p0}", objectPointer, "b", "c", nil)
@@ -246,21 +246,21 @@ section from the standard [text/template](https://golang.org/pkg/text/template) 
 
 ```go
 functions := formatter.Functions{
-	"str": func() string {
-		return "text"
-	},
-	"number": func() int {
-		return 3
-	},
-	"boolean": func() bool {
-		return true
-	},
-	"floating": func() float64 {
-		return 4.5
-	},
-	"transform": func(value int) int {
-		return value + 3
-	},
+    "str": func() string {
+        return "text"
+    },
+    "number": func() int {
+        return 3
+    },
+    "boolean": func() bool {
+        return true
+    },
+    "floating": func() float64 {
+        return 4.5
+    },
+    "transform": func(value int) int {
+        return value + 3
+    },
 }
 
 formatted, err := formatter.New().SetFunctions(functions).Format("Custom functions {str} {p} {number} {boolean} {floating} {number | transform}", 5)
